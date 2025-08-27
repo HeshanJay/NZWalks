@@ -6,6 +6,7 @@ using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
+using System.Text.Json;
 
 namespace NZWalks.API.Controllers
 {
@@ -17,39 +18,57 @@ namespace NZWalks.API.Controllers
         private readonly NZWalksDbContext dbContext;
         private readonly IRegionRepository regionRepository;
         private readonly IMapper mapper;
+        private readonly ILogger<RegionsController> logger;
 
-        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository, IMapper mapper)
+        public RegionsController(NZWalksDbContext dbContext,
+            IRegionRepository regionRepository,
+            IMapper mapper,
+            ILogger<RegionsController> logger)
         {
             this.dbContext = dbContext;
             this.regionRepository = regionRepository;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         // GET ALL REGIONS
         // GET: https://localhost:portnumber/api/regions
         [HttpGet]
-        [Authorize(Roles = "Reader")]
+        //[Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetAll()
         {
-            // Get data from database - Domain models
-            var regionsDomain = await regionRepository.GetAllAsync();
+            try
+            {
+                throw new Exception("This is a custom exception");
 
-            // Map domain models to DTOs
-            //var regionsDto = new List<RegionDto>();
-            //foreach (var regionDomain in regionsDomain)
-            //{
-            //    regionsDto.Add(new RegionDto()
-            //    {
-            //        Id = regionDomain.Id,
-            //        Code = regionDomain.Code,
-            //        Name = regionDomain.Name,
-            //        RegionImageUrl = regionDomain.RegionImageUrl
-            //    });
-            //}
+                // Get data from database - Domain models
+                var regionsDomain = await regionRepository.GetAllAsync();
 
-            // Map domain models to DTOs
-            // Return DTOs
-            return Ok(mapper.Map<List<RegionDto>>(regionsDomain));
+                // Map domain models to DTOs
+                //var regionsDto = new List<RegionDto>();
+                //foreach (var regionDomain in regionsDomain)
+                //{
+                //    regionsDto.Add(new RegionDto()
+                //    {
+                //        Id = regionDomain.Id,
+                //        Code = regionDomain.Code,
+                //        Name = regionDomain.Name,
+                //        RegionImageUrl = regionDomain.RegionImageUrl
+                //    });
+                //}
+
+                // Map domain models to DTOs
+                // Return DTOs
+
+                logger.LogInformation($"Finished GetAllRegions request with data: {JsonSerializer.Serialize(regionsDomain)}");
+
+                return Ok(mapper.Map<List<RegionDto>>(regionsDomain));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                throw;
+            }
         }
 
         // GET A SINGLE REGION (Get region by ID)
